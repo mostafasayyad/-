@@ -1,0 +1,163 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MustafaFishApp());
+}
+
+class MustafaFishApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'مسمكة مصطفى الصياد',
+      theme: ThemeData(primarySwatch: Colors.teal, fontFamily: 'Roboto'),
+      home: HomePage(),
+    );
+  }
+}
+
+class Fish {
+  final String name;
+  final double price;
+  final String imageUrl;
+
+  Fish({required this.name, required this.price, required this.imageUrl});
+}
+
+List<Fish> fishList = [
+  Fish(name: 'سلمون نرويجي', price: 70.0, imageUrl: 'assets/salmon.jpg'),
+  Fish(name: 'دنيس بحر', price: 45.0, imageUrl: 'assets/denis.jpg'),
+  Fish(name: 'بوري طازج', price: 35.0, imageUrl: 'assets/bori.jpg'),
+];
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('مسمكة مصطفى الصياد')),
+      body: ListView.builder(
+        itemCount: fishList.length,
+        itemBuilder: (context, index) {
+          final fish = fishList[index];
+          return ListTile(
+            leading: Image.asset(fish.imageUrl, width: 50, height: 50, fit: BoxFit.cover),
+            title: Text(fish.name),
+            subtitle: Text('${fish.price.toStringAsFixed(2)} ₪'),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FishDetailsPage(fish: fish),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class FishDetailsPage extends StatefulWidget {
+  final Fish fish;
+  FishDetailsPage({required this.fish});
+
+  @override
+  _FishDetailsPageState createState() => _FishDetailsPageState();
+}
+
+class _FishDetailsPageState extends State<FishDetailsPage> {
+  int quantity = 1;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.fish.name)),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Image.asset(widget.fish.imageUrl, height: 200),
+            SizedBox(height: 16),
+            Text('${widget.fish.price.toStringAsFixed(2)} ₪ للكيلو', style: TextStyle(fontSize: 20)),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                Text('الكمية: ', style: TextStyle(fontSize: 18)),
+                IconButton(onPressed: () => setState(() => quantity--), icon: Icon(Icons.remove)),
+                Text(quantity.toString(), style: TextStyle(fontSize: 18)),
+                IconButton(onPressed: () => setState(() => quantity++), icon: Icon(Icons.add)),
+              ],
+            ),
+            Spacer(),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CheckoutPage(fish: widget.fish, quantity: quantity),
+                  ),
+                );
+              },
+              child: Text('إضافة إلى الطلب'),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CheckoutPage extends StatelessWidget {
+  final Fish fish;
+  final int quantity;
+  CheckoutPage({required this.fish, required this.quantity});
+
+  @override
+  Widget build(BuildContext context) {
+    double total = fish.price * quantity;
+
+    return Scaffold(
+      appBar: AppBar(title: Text('تأكيد الطلب')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('الطلب:', style: TextStyle(fontSize: 18)),
+            Text('${fish.name} × $quantity = ${total.toStringAsFixed(2)} ₪', style: TextStyle(fontSize: 18)),
+            SizedBox(height: 24),
+            Text('الاسم:', style: TextStyle(fontSize: 16)),
+            TextField(decoration: InputDecoration(hintText: 'أدخل اسمك')),
+            SizedBox(height: 16),
+            Text('رقم الهاتف:', style: TextStyle(fontSize: 16)),
+            TextField(decoration: InputDecoration(hintText: 'أدخل رقم الهاتف')),            
+            SizedBox(height: 16),
+            Text('العنوان:', style: TextStyle(fontSize: 16)),
+            TextField(decoration: InputDecoration(hintText: 'مثال: كفر عقب، خلف مركز الحياة الطبي')),
+            Spacer(),
+            ElevatedButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('تم إرسال الطلب'),
+                    content: Text('سيتم التواصل معك قريبًا لتأكيد التوصيل.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                        child: Text('حسناً'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: Text('تأكيد الطلب'),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
